@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Arrecadação - DETRAN PR</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #e2e8f0;
+        }
+
+        .wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header-section {
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .header-section h1 {
+            font-size: 3em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header-section p {
+            font-size: 1.1em;
+            color: #94a3b8;
+            font-weight: 300;
+        }
+
+        .metrics-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .metric-box {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .metric-box:hover {
+            border-color: #06b6d4;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(6, 182, 212, 0.1);
+        }
+
+        .metric-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #06b6d4, #0ea5e9);
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #06b6d4;
+            word-break: break-word;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .chart-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .chart-card:hover {
+            border-color: #0ea5e9;
+            box-shadow: 0 20px 40px rgba(14, 165, 233, 0.1);
+        }
+
+        .chart-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #06b6d4, #0ea5e9);
+            border-radius: 2px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+        }
+
+        .table-section {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        .table-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #06b6d4, #0ea5e9);
+            border-radius: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(6, 182, 212, 0.1);
+            border-bottom: 2px solid #334155;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #06b6d4;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        tbody tr:hover {
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        tbody tr:nth-child(even) {
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .value-cell {
+            font-weight: 600;
+            color: #0ea5e9;
+            font-family: 'Courier New', monospace;
+        }
+
+        .footer-section {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+            font-size: 0.9em;
+            margin-top: 50px;
+            border-top: 1px solid #334155;
+        }
+
+        @media (max-width: 768px) {
+            .header-section h1 {
+                font-size: 2em;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .scroll-hint {
+            color: #64748b;
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="header-section">
+            <h1>DETRAN-PR Analytics</h1>
+            <p>Relatório de Arrecadação de Multas - Exercício 2024</p>
+        </div>
+
+        <div class="metrics-section">
+            <div class="metric-box">
+                <div class="metric-label">💰 Arrecadação Total</div>
+                <div class="metric-value" id="metricTotal">R$ 0,00</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">📉 Deduções Totais</div>
+                <div class="metric-value" id="metricDeducoes">R$ 0,00</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">➕ Créditos Totais</div>
+                <div class="metric-value" id="metricCreditos">R$ 0,00</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-label">✅ Repasse Líquido</div>
+                <div class="metric-value" id="metricRepasse">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">Evolução Mensal de Arrecadação</div>
+                <div class="chart-container">
+                    <canvas id="chart1"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Análise de Impacto Financeiro</div>
+                <div class="chart-container">
+                    <canvas id="chart2"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Deduções vs Créditos por Período</div>
+                <div class="chart-container">
+                    <canvas id="chart3"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title">Índice de Eficiência de Repasse</div>
+                <div class="chart-container">
+                    <canvas id="chart4"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <div class="table-title">Detalhamento Mensal Completo</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th>Arrecadação</th>
+                        <th>Deduções</th>
+                        <th>Créditos</th>
+                        <th>Repasse</th>
+                        <th>% Eficiência</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+            <div class="scroll-hint">← Deslize para ver mais dados →</div>
+        </div>
+
+        <div class="footer-section">
+            <p>Dashboard para atividade prática 3</p>
+        </div>
+    </div>
+
+    <script>
+        const dados = [
+            { mes: 'JANEIRO', arrecadado: 5331026.87, deducoes: 19914.72, creditos: 0.00, repasse: 5311112.15 },
+            { mes: 'FEVEREIRO', arrecadado: 4077005.00, deducoes: 26599.85, creditos: 848.84, repasse: 4051253.99 },
+            { mes: 'MARÇO', arrecadado: 5448754.12, deducoes: 10510.28, creditos: 1732.36, repasse: 5439976.20 },
+            { mes: 'ABRIL', arrecadado: 4397362.30, deducoes: 11192.99, creditos: 872.85, repasse: 4387042.16 },
+            { mes: 'MAIO', arrecadado: 5522909.17, deducoes: 1987.59, creditos: 0.00, repasse: 5520921.58 },
+            { mes: 'JUNHO', arrecadado: 5045998.76, deducoes: 9063.96, creditos: 1840.29, repasse: 5038775.09 },
+            { mes: 'JULHO', arrecadado: 5172690.16, deducoes: 4077.18, creditos: 1819.71, repasse: 5170432.69 },
+            { mes: 'AGOSTO', arrecadado: 7259614.68, deducoes: 1904.90, creditos: 0.00, repasse: 7257709.78 },
+            { mes: 'SETEMBRO', arrecadado: 7422945.03, deducoes: 229.84, creditos: 0.00, repasse: 7422715.19 },
+            { mes: 'OUTUBRO', arrecadado: 7693754.14, deducoes: 957.70, creditos: 0.00, repasse: 7692796.44 },
+            { mes: 'NOVEMBRO', arrecadado: 7416704.73, deducoes: 2944850.72, creditos: 0.00, repasse: 4471854.01 },
+            { mes: 'DEZEMBRO', arrecadado: 8377830.66, deducoes: 2611422.03, creditos: 0.00, repasse: 5766408.63 }
+        ];
+
+        function formatarMoeda(valor) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(valor);
+        }
+
+        function atualizarMetricas() {
+            const total = dados.reduce((sum, d) => sum + d.arrecadado, 0);
+            const deducoes = dados.reduce((sum, d) => sum + d.deducoes, 0);
+            const creditos = dados.reduce((sum, d) => sum + d.creditos, 0);
+            const repasse = dados.reduce((sum, d) => sum + d.repasse, 0);
+
+            document.getElementById('metricTotal').textContent = formatarMoeda(total);
+            document.getElementById('metricDeducoes').textContent = formatarMoeda(deducoes);
+            document.getElementById('metricCreditos').textContent = formatarMoeda(creditos);
+            document.getElementById('metricRepasse').textContent = formatarMoeda(repasse);
+        }
+
+        function criarGraficos() {
+            const meses = dados.map(d => d.mes.substring(0, 3));
+            const arrecadado = dados.map(d => d.arrecadado);
+            const deducoes = dados.map(d => d.deducoes);
+            const creditos = dados.map(d => d.creditos);
+            const repasse = dados.map(d => d.repasse);
+            const eficiencia = dados.map(d => ((d.repasse / d.arrecadado) * 100).toFixed(1));
+
+            // Gráfico 1: Linha com área
+            new Chart(document.getElementById('chart1'), {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Arrecadação (R$)',
+                        data: arrecadado,
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#06b6d4',
+                        pointBorderColor: '#0f172a',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#94a3b8', font: { size: 12 } }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: v => 'R$ ' + (v / 1000000).toFixed(1) + 'M'
+                            },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico 2: Barras empilhadas
+            new Chart(document.getElementById('chart2'), {
+                type: 'bar',
+                data: {
+                    labels: meses,
+                    datasets: [
+                        {
+                            label: 'Arrecadado',
+                            data: arrecadado,
+                            backgroundColor: '#06b6d4',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Deduções',
+                            data: deducoes.map(d => -d),
+                            backgroundColor: '#ef4444',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#94a3b8', font: { size: 12 } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: v => 'R$ ' + Math.abs(v / 1000000).toFixed(1) + 'M'
+                            },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico 3: Radar
+            new Chart(document.getElementById('chart3'), {
+                type: 'radar',
+                data: {
+                    labels: meses,
+                    datasets: [
+                        {
+                            label: 'Deduções',
+                            data: deducoes,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#ef4444'
+                        },
+                        {
+                            label: 'Créditos',
+                            data: creditos,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#10b981'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#94a3b8', font: { size: 12 } }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico 4: Doughnut
+            new Chart(document.getElementById('chart4'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Excelente (>95%)', 'Bom (85-95%)', 'Regular (<85%)'],
+                    datasets: [{
+                        data: [
+                            eficiencia.filter(e => e >= 95).length,
+                            eficiencia.filter(e => e >= 85 && e < 95).length,
+                            eficiencia.filter(e => e < 85).length
+                        ],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderColor: '#0f172a',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#94a3b8', font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function preencherTabela() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            dados.forEach(row => {
+                const eficiencia = ((row.repasse / row.arrecadado) * 100).toFixed(1);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${row.mes}</strong></td>
+                    <td class="value-cell">${formatarMoeda(row.arrecadado)}</td>
+                    <td class="value-cell">${formatarMoeda(row.deducoes)}</td>
+                    <td class="value-cell">${formatarMoeda(row.creditos)}</td>
+                    <td class="value-cell">${formatarMoeda(row.repasse)}</td>
+                    <td class="value-cell">${eficiencia}%</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Inicializar
+        atualizarMetricas();
+        criarGraficos();
+        preencherTabela();
+    </script>
+</body>
+</html>
