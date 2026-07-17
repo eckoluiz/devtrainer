@@ -357,7 +357,7 @@
             const repasse = dados.map(d => d.repasse);
             const eficiencia = dados.map(d => ((d.repasse / d.arrecadado) * 100).toFixed(1));
 
-            // Gráfico 1: Linha com área
+            
             new Chart(document.getElementById('chart1'), {
                 type: 'line',
                 data: {
@@ -401,7 +401,7 @@
                 }
             });
 
-            // Gráfico 2: Barras empilhadas
+            
             new Chart(document.getElementById('chart2'), {
                 type: 'bar',
                 data: {
@@ -446,7 +446,7 @@
                 }
             });
 
-            // Gráfico 3: Radar
+           
             new Chart(document.getElementById('chart3'), {
                 type: 'radar',
                 data: {
@@ -487,7 +487,7 @@
                 }
             });
 
-            // Gráfico 4: Doughnut
+            
             new Chart(document.getElementById('chart4'), {
                 type: 'doughnut',
                 data: {
@@ -534,7 +534,7 @@
             });
         }
 
-        // Inicializar
+        
         atualizarMetricas();
         criarGraficos();
         preencherTabela();
